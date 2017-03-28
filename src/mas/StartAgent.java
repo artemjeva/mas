@@ -24,7 +24,6 @@ public class StartAgent extends Agent{
             	PlatformController container = getContainerController();
             	Object[] args = new Object[1];
             	args[0] = City.city.getEdgeWeight(e);
-            	//args[1] = e.toString();
             	AgentController road = container.createNewAgent(localName, "mas.RoadAgent", args);
             	road.start();
             }
@@ -37,8 +36,16 @@ public class StartAgent extends Agent{
         	args[1] = (Integer) 7;
 			AgentController car = container.createNewAgent(localName, "mas.CarAgent", args);
         	car.start();
-        	
+      	
         	localName = "car_1";
+ 			container = getContainerController();
+ 			args = new Object[2];
+         	args[0] = (Integer) 1;
+         	args[1] = (Integer) 7;
+ 			car = container.createNewAgent(localName, "mas.CarAgent", args);
+         	car.start();
+         	
+         	localName = "car_2";
  			container = getContainerController();
  			args = new Object[2];
          	args[0] = (Integer) 1;
@@ -54,13 +61,6 @@ public class StartAgent extends Agent{
  			car = container.createNewAgent(localName, "mas.CarAgent", args);
          	car.start();
          	
-         	localName = "car_4";
- 			container = getContainerController();
- 			args = new Object[2];
-         	args[0] = (Integer) 1;
-         	args[1] = (Integer) 7;
- 			car = container.createNewAgent(localName, "mas.CarAgent", args);
-         	car.start();
         }
         catch (Exception e) {
             System.err.println( "Exception while adding roads: " + e );
