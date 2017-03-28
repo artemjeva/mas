@@ -19,9 +19,7 @@ import jade.lang.acl.MessageTemplate;
 public class RoadAgent extends Agent{
 	private double weight = 0;
 	private Queue<AID> queue = new PriorityQueue<AID>();
-	private List<AID> carsRequest = new ArrayList<AID>();
-//	public String edge;
-	
+	private List<AID> carsRequest = new ArrayList<AID>();	
 	
 	protected void setup() {
 		System.out.println("Hello! Road " + getAID().getLocalName() + " is ready!");
@@ -29,7 +27,6 @@ public class RoadAgent extends Agent{
 		Object[] args = getArguments();
 		if (args != null && args.length > 0) {
 			weight = (Double) args[0];
-		//	edge = (String) args[1];
 			
 			//Регистрация агентов
 			DFAgentDescription dfd = new DFAgentDescription();
@@ -45,84 +42,85 @@ public class RoadAgent extends Agent{
 				fe.printStackTrace();
 			}
 			
-			addBehaviour(new CyclicBehaviourForRoad());			
-			
-		}
-		else {
-			// Make the agent terminate
-			System.out.println("No arguments.");
-			doDelete();
-		}
-	}
-	
-	private class CyclicBehaviourForRoad extends CyclicBehaviour{
-
-		@Override
-		public void action() {
-			ACLMessage msg = receive();
-			if (msg != null) {
-				//если получили запрос от машины
-				if(msg.getPerformative() == ACLMessage.REQUEST)
-				{
-					//первая дуга в пути
-					if(msg.getContent().equals("start")){
-						//принятие
-						System.out.println(getAID().getLocalName()+": first");
-						Accept(msg.getSender(), weight);
-						queue.add(msg.getSender());
+			//Request from car
+			addBehaviour(new CyclicBehaviour(){
+				public void action() {
+					ACLMessage msg = receive(MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
+					if (msg != null) {
+						//first edge in path
+						if(msg.getContent().equals("start")){
+							System.out.println(getAID().getLocalName()+": first");
+							Accept(msg.getSender(), weight);
+							queue.add(msg.getSender());
+						}
+						else{	
+							//path is free
+							if(queue.size()<2)
+				            {
+								carsRequest.add(msg.getSender());
+				            	// Propose to another road 
+				            	DFAgentDescription template = new DFAgentDescription();
+					           	ServiceDescription sd = new ServiceDescription();
+					           	sd.setType("traffic");
+					           	template.addServices(sd);
+					           	try {
+					           		DFAgentDescription[] result = DFService.search(this.myAgent, template); 
+					           		for (int i = 0; i < result.length; ++i) {
+					           			if(result[i].getName().getLocalName().equals(msg.getContent())){
+					           			    //send message
+					           				System.out.println(getAID().getLocalName()+": Propose for " + result[i].getName().getLocalName() + " about " + msg.getSender().getLocalName());
+					                        ACLMessage req = new ACLMessage( ACLMessage.PROPOSE);
+					           				req.setContent(msg.getSender().getLocalName());
+					           				req.addReceiver(result[i].getName());
+					           				send(req);
+				           					break;
+				           					}
+				           				}
+					           	}	
+					           	catch (FIPAException fe) {
+					           		fe.printStackTrace();
+					           	}
+				            }
+							else //path is NOT free
+								Reject(msg.getSender());
+						}
 					}
-					else{	
-						//дорога не загружена
-						if(queue.size()<2)
-		                {
-							carsRequest.add(msg.getSender());
-		            	    // запрос к другой дороге, чтобы "забрать" машину
-		            	   	DFAgentDescription template = new DFAgentDescription();
-			           		ServiceDescription sd = new ServiceDescription();
-			           		sd.setType("traffic");
-			           		template.addServices(sd);
-			           		try {
-			           			DFAgentDescription[] result = DFService.search(this.myAgent, template); 
-			           			for (int i = 0; i < result.length; ++i) {
-			           				if(result[i].getName().getLocalName().equals(msg.getContent())){
-			           					
-			           					//посылаем сообщение
-			           					System.out.println(getAID().getLocalName()+": Propose for " + result[i].getName().getLocalName());
-			                        	ACLMessage req = new ACLMessage( ACLMessage.PROPOSE);
-			           					req.setContent(msg.getSender().getLocalName());
-			           				    req.addReceiver(result[i].getName());
-			           				    send(req);
-		           						
-			           					break;
-		           					}
-		           				}
-			           		}	
-			           		catch (FIPAException fe) {
-			           			fe.printStackTrace();
-			           		}
-		                }
-						else //дорога загружена
-		            	   Reject(msg.getSender());
-					}
-					}
-					//запрос от дороги
-					if(msg.getPerformative() == ACLMessage.PROPOSE){
-						System.out.println(getAID().getLocalName()+": Propose from " + msg.getSender().getLocalName());
+					else {
+		                // if no message is arrived, block the behaviour
+		                block();
+		            }
+				}
+			});		
+			//Propose from road
+			addBehaviour(new CyclicBehaviour(){
+				public void action(){
+					ACLMessage msg = receive(MessageTemplate.MatchPerformative(ACLMessage.PROPOSE));
+					if (msg != null) {
+						//System.out.println(getAID().getLocalName()+": Propose from " + msg.getSender().getLocalName());
 						for(AID agent : queue){
 							if(agent.getLocalName().equals(msg.getContent()))
 							{
-								System.out.println(getAID().getLocalName()+": Accept for " + agent.getLocalName());
-								ACLMessage accept = new ACLMessage( ACLMessage.ACCEPT_PROPOSAL);
-		       					accept.setContent(msg.getContent());
-		       				    accept.addReceiver(msg.getSender());
-		       				    send(accept);
-		       				    queue.remove(agent);
-		       				    break;
+								System.out.println(getAID().getLocalName()+": Send agreement for " + agent.getLocalName());
+								ACLMessage accept = new ACLMessage( ACLMessage.AGREE);
+				       			accept.setContent(msg.getContent());
+				       		    accept.addReceiver(msg.getSender());
+				       		    send(accept);
+				       		    queue.remove(agent);
+				       		    break;
 							}
 						}
 					}
-					//ответ машине
-					if(msg.getPerformative() == ACLMessage.ACCEPT_PROPOSAL){
+					else {
+		                // if no message is arrived, block the behaviour
+		                block();
+		            }
+				}
+			});
+			//Agreement from road
+			addBehaviour(new CyclicBehaviour(){
+				public void action(){
+					ACLMessage msg = receive(MessageTemplate.MatchPerformative(ACLMessage.AGREE));
+					if (msg != null) {
 						AID agent = null;
 						for(AID a : carsRequest){
 							if(a.getLocalName().equals(msg.getContent())){
@@ -134,16 +132,33 @@ public class RoadAgent extends Agent{
 						queue.add(agent);
 						Accept(agent, weight);						
 					}
-					if(msg.getPerformative() == ACLMessage.INFORM){
+					else {
+						// if no message is arrived, block the behaviour
+						block();
+					}
+				}
+			});
+			//Information from car
+			addBehaviour(new CyclicBehaviour(){
+				public void action(){
+					ACLMessage msg = receive(MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+					if (msg != null) {
 						queue.remove(msg.getSender());
 					}
-			}
-			
-            else {
-                // if no message is arrived, block the behaviour
-                block();
-            }
+					else {
+						// if no message is arrived, block the behaviour
+						block();
+					}
+				}
+			});
+		}
+		else {
+			// Make the agent terminate
+			System.out.println("No arguments.");
+			doDelete();
+		}
 	}
+
 	public void Reject(AID receiver){
 		System.out.println(getAID().getLocalName()+": Reject for " + receiver.getLocalName() + ", size of queue = " + queue.size());
 		ACLMessage reject = new ACLMessage( ACLMessage.REJECT_PROPOSAL );
@@ -158,7 +173,6 @@ public class RoadAgent extends Agent{
     	accept.addReceiver(receiver);
 		send(accept);
 	}
-}
 }
 
 
