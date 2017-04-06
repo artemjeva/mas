@@ -1,5 +1,6 @@
 package mas;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,20 +22,13 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 public class CarAgent extends Agent{
-	private int start = 0, finish = 0;
-	private int currentP = -1;
-	private AID[] roadAgents;
+	private int start = 0, finish = 0, start_ = 0, finish_ = 0;
+	private AID currentP;// = new AID();
+	private List<AID> roadAgents = new ArrayList<AID>();
 	private long startTime, finishTime;
 	
 	protected void setup() {
 		System.out.println("Hello! Car " + getAID().getLocalName() + " is ready to go!");
-		
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
 		
 		Object[] args = getArguments();
 		if (args != null && args.length > 0) {
@@ -42,46 +36,13 @@ public class CarAgent extends Agent{
 			finish = (Integer) args[1];
 			System.out.println(getAID().getLocalName() + ": Start is " + start + " vertex, finish is " + finish + " vertex.");
 			
+			start_ = start;
+			finish_ = finish;
+			startTime = System.currentTimeMillis();
+			
 			//Searching path
-			addBehaviour(new OneShotBehaviour(){
-				public void action()
-				{
-					//»щем короткий путь
-					System.out.println(getAID().getLocalName()+": Search the shortest path...");
-					GraphPath<Integer, DefaultWeightedEdge> gp = DijkstraShortestPath.findPathBetween(City.city, start, finish);
-					System.out.println(getAID().getLocalName()+": Shortest path found.");
-					List<DefaultWeightedEdge> listPath = gp.getEdgeList();
-					
-					//»щем агентов с такими же именами, как дуги в кратчайшем пути
-					DFAgentDescription template = new DFAgentDescription();
-					ServiceDescription sd = new ServiceDescription();
-					sd.setType("traffic");
-					template.addServices(sd);
-					try {
-						DFAgentDescription[] result = DFService.search(myAgent, template); 
-						//System.out.println("Found the following roads:");
-						roadAgents = new AID[listPath.size()];
-						int j = 0;
-						String res = "";
-						for(DefaultWeightedEdge e : listPath){
-							for (int i = 0; i < result.length; ++i) {
-								if(result[i].getName().getLocalName().equals("e"+City.city.getEdgeSource(e)+"_"+City.city.getEdgeTarget(e))){
-									roadAgents[j] = result[i].getName();
-									res+= " -> " + result[i].getName().getLocalName();
-									j++;
-									break;
-								}
-							}
-						}
-						System.out.println(getAID().getLocalName()+": Searched road agents from path" + res);
-						startTime = System.currentTimeMillis();
-						Request(0);
-					}
-					catch (FIPAException fe) {
-						fe.printStackTrace();
-					}
-				}
-			});
+			addBehaviour(new SearchBehaviour());
+			
 			// Accept from road
 			addBehaviour(new CyclicBehaviour(){
 				public void action() {
@@ -89,18 +50,24 @@ public class CarAgent extends Agent{
 
 		            if (msg != null) {
 		                	System.out.println(getAID().getLocalName()+": Accept from road " + msg.getSender().getLocalName());
-		                	currentP++;
+		                	currentP = msg.getSender();
 		                	int time = Integer.parseInt(msg.getContent());
 		                	
 		                	//TODO: add behaviour
 		                	//addBehaviour(new RideBehaviour(myAgent, time));
-		                	//doWait или wakerBehaviour?
+		                	//doWait or wakerBehaviour?
 		                	
 		                	System.out.println(myAgent.getLocalName()+": Ride... " + (time/1000) + "s");
 		                	doWait(time);
 		                	
-		                    if(currentP < roadAgents.length-1)
-		                    	Request(currentP+1);
+		                    if(roadAgents.size() > 1)
+		                    {
+		                    	start_ = Integer.parseInt(msg.getSender().getLocalName().split("_")[1]);
+		                    	System.out.println(getAID().getLocalName()+": next vertex is " + start_);
+		                    	addBehaviour(new SearchBehaviour());
+		                    	//Request(currentP+1);
+		                    	//»щем новый путь
+		                    }	
 		                    else 
 		                    {
 		                    	ACLMessage inform = new ACLMessage( ACLMessage.INFORM);
@@ -148,16 +115,17 @@ public class CarAgent extends Agent{
 	
 	private void Request(int numberRoad)
 	{
-		System.out.println(getAID().getLocalName()+": Request, " + numberRoad);
+		//System.out.println(getAID().getLocalName()+": Request to " + roadAgents.get(numberRoad).getLocalName());
 		ACLMessage req = new ACLMessage( ACLMessage.REQUEST );
-		if(numberRoad < 1){
+		if(currentP == null){
+			System.out.println(getAID().getLocalName()+": Request to " + roadAgents.get(numberRoad).getLocalName());
 	        req.setContent("start");
-	        req.addReceiver(roadAgents[numberRoad]);
+	        req.addReceiver(roadAgents.get(numberRoad));
 	        send(req);
 		}
 		else {
-			req.setContent(roadAgents[numberRoad-1].getLocalName());
-	        req.addReceiver(roadAgents[numberRoad]);
+			req.setContent(currentP.getLocalName());
+	        req.addReceiver(roadAgents.get(numberRoad));
 	        send(req);
 		}
 	}
@@ -170,8 +138,48 @@ public class CarAgent extends Agent{
 		}
 		protected void onTick() {
 	        System.out.println(myAgent.getLocalName()+": Repeated request...");
-	        Request(currentP+1);
+	        Request(0);
 	      } 
+	}
+	
+	private class SearchBehaviour extends OneShotBehaviour{
+		public void action()
+		{
+			System.out.println(getAID().getLocalName()+": Search the shortest path...");
+			GraphPath<Integer, DefaultWeightedEdge> gp = DijkstraShortestPath.findPathBetween(City.city, start_, finish_);
+			System.out.println(getAID().getLocalName()+": Shortest path found.");
+			List<DefaultWeightedEdge> listPath = gp.getEdgeList();
+			
+			//Searching agents
+			DFAgentDescription template = new DFAgentDescription();
+			ServiceDescription sd = new ServiceDescription();
+			sd.setType("traffic");
+			template.addServices(sd);
+			try {
+				DFAgentDescription[] result = DFService.search(myAgent, template); 
+				//System.out.println("Found the following roads:");
+				//roadAgents = new AID[listPath.size()];
+				roadAgents.clear();
+				int j = 0;
+				String res = "";
+				for(DefaultWeightedEdge e : listPath){
+					for (int i = 0; i < result.length; ++i) {
+						if(result[i].getName().getLocalName().equals("e"+City.city.getEdgeSource(e)+"_"+City.city.getEdgeTarget(e))){
+							roadAgents.add(result[i].getName());
+							res+= " -> " + result[i].getName().getLocalName();
+							j++;
+							break;
+						}
+					}
+				}
+				System.out.println(getAID().getLocalName()+": Searched road agents from path" + res);
+				
+				Request(0);
+			}
+			catch (FIPAException fe) {
+				fe.printStackTrace();
+			}
+		}
 	}
 /*	
 	private class RideBehaviour extends WakerBehaviour{
