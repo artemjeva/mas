@@ -22,8 +22,10 @@ public class StartAgent extends Agent{
                 // create a new agent
             	String localName = "e"+City.city.getEdgeSource(e)+"_"+City.city.getEdgeTarget(e);
             	PlatformController container = getContainerController();
-            	Object[] args = new Object[1];
+            	Object[] args = new Object[3];           	
             	args[0] = City.city.getEdgeWeight(e);
+            	args[1] = City.city.getEdgeWeight(e) * 2;//maxSize is weight (we mean time) * 2
+            	args[2] = 0;//there are no cars on the roads
             	AgentController road = container.createNewAgent(localName, "mas.RoadAgent", args);
             	road.start();
             }

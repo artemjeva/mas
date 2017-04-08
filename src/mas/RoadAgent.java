@@ -18,6 +18,8 @@ import jade.lang.acl.MessageTemplate;
 
 public class RoadAgent extends Agent{
 	private double weight = 0;
+	private double maxSize = 0;
+	private double currentSize = 0;
 	private Queue<AID> queue = new PriorityQueue<AID>();
 	private List<AID> carsRequest = new ArrayList<AID>();	
 	
@@ -25,10 +27,12 @@ public class RoadAgent extends Agent{
 		System.out.println("Hello! Road " + getAID().getLocalName() + " is ready!");
 		
 		Object[] args = getArguments();
-		if (args != null && args.length > 0) {
+		if (args != null && args.length == 3) {
 			weight = (Double) args[0];
+			maxSize = (Double) args[1];
+			currentSize = (Integer) args[2];
 			
-			//Регистрация агентов
+			//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 			DFAgentDescription dfd = new DFAgentDescription();
 			dfd.setName(getAID());
 			ServiceDescription sd = new ServiceDescription();
@@ -50,12 +54,16 @@ public class RoadAgent extends Agent{
 						//first edge in path
 						if(msg.getContent().equals("start")){
 							System.out.println(getAID().getLocalName()+": first");
+							weight = weight + (weight/maxSize) * currentSize;
 							Accept(msg.getSender(), weight);
 							queue.add(msg.getSender());
+							currentSize = queue.size();
+							int [] verteces = parseEdgeName(getAID().getLocalName());		
+							City.city.setEdgeWeight(City.city.getEdge(verteces[0], verteces[1]), weight);
 						}
 						else{	
 							//path is free
-							if(queue.size()<2)
+							if(queue.size() < maxSize)
 				            {
 								carsRequest.add(msg.getSender());
 				            	// Propose to another road 
@@ -106,6 +114,10 @@ public class RoadAgent extends Agent{
 				       		    accept.addReceiver(msg.getSender());
 				       		    send(accept);
 				       		    queue.remove(agent);
+				       		    currentSize = queue.size();
+				       		    int [] verteces = parseEdgeName(getAID().getLocalName());		
+								weight = weight + (weight/maxSize) * currentSize;
+								City.city.setEdgeWeight(City.city.getEdge(verteces[0], verteces[1]), weight);
 				       		    break;
 							}
 						}
@@ -130,6 +142,10 @@ public class RoadAgent extends Agent{
 						}
 						carsRequest.remove(agent);
 						queue.add(agent);
+						currentSize = queue.size();
+						int [] verteces = parseEdgeName(getAID().getLocalName());		
+						weight = weight + (weight/maxSize) * currentSize;
+						City.city.setEdgeWeight(City.city.getEdge(verteces[0], verteces[1]), weight);
 						Accept(agent, weight);						
 					}
 					else {
@@ -144,6 +160,10 @@ public class RoadAgent extends Agent{
 					ACLMessage msg = receive(MessageTemplate.MatchPerformative(ACLMessage.INFORM));
 					if (msg != null) {
 						queue.remove(msg.getSender());
+						currentSize = queue.size();
+						int [] verteces = parseEdgeName(getAID().getLocalName());		
+						weight = weight + (weight/maxSize) * currentSize;
+						City.city.setEdgeWeight(City.city.getEdge(verteces[0], verteces[1]), weight);
 					}
 					else {
 						// if no message is arrived, block the behaviour
@@ -172,6 +192,21 @@ public class RoadAgent extends Agent{
 		accept.setContent(""+((int) value*1000));
     	accept.addReceiver(receiver);
 		send(accept);
+	}
+	
+	private int[] parseEdgeName (String edgeName)
+	{
+		int i = 0;
+		int[] verteces = new int[2];
+		Pattern p = Pattern.compile("[0-9]+");
+		Matcher m = p.matcher(edgeName);
+		while (m.find()) {
+			verteces[i] = Integer.parseInt(m.group());
+			i++;
+		}
+		
+		return verteces;
+		
 	}
 }
 
