@@ -34,6 +34,7 @@ public class RoadAgent extends Agent{
 			startWeight = (Double) args[0];
 			maxSize = (Double) args[1];
 			currentSize = (Integer) args[2];
+			verteces = parseEdgeName(getAID().getLocalName());
 			
 			//����������� �������
 			DFAgentDescription dfd = new DFAgentDescription();
