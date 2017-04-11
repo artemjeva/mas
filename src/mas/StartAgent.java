@@ -16,7 +16,6 @@ public class StartAgent extends Agent{
 	protected void setup() {
 		System.out.println("Starting...");
 		City.DoCity();
-		int i = 0;
 		try {
             for (DefaultWeightedEdge e : City.edges) {
                 // create a new agent
@@ -60,7 +59,7 @@ public class StartAgent extends Agent{
          	args[1] = (Integer) 7;
  			car = container.createNewAgent(localName, "mas.CarAgent", args);
          	car.start();
-         	
+         
         }
         catch (Exception e) {
             System.err.println( "Exception while adding roads: " + e );

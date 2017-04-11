@@ -28,7 +28,7 @@ public class RoadAgent extends Agent{
 		if (args != null && args.length > 0) {
 			weight = (Double) args[0];
 			
-			//Регистрация агентов
+			//Registration
 			DFAgentDescription dfd = new DFAgentDescription();
 			dfd.setName(getAID());
 			ServiceDescription sd = new ServiceDescription();
