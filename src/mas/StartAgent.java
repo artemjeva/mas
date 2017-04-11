@@ -63,6 +63,86 @@ public class StartAgent extends Agent{
  			car = container.createNewAgent(localName, "mas.CarAgent", args);
          	car.start();
          	
+         	localName = "car_4";
+ 			container = getContainerController();
+ 			args = new Object[2];
+         	args[0] = (Integer) 1;
+         	args[1] = (Integer) 7;
+ 			car = container.createNewAgent(localName, "mas.CarAgent", args);
+         	car.start();
+         	
+         	localName = "car_5";
+ 			container = getContainerController();
+ 			args = new Object[2];
+         	args[0] = (Integer) 1;
+         	args[1] = (Integer) 7;
+ 			car = container.createNewAgent(localName, "mas.CarAgent", args);
+         	car.start();
+         	
+         	localName = "car_6";
+ 			container = getContainerController();
+ 			args = new Object[2];
+         	args[0] = (Integer) 1;
+         	args[1] = (Integer) 7;
+ 			car = container.createNewAgent(localName, "mas.CarAgent", args);
+         	car.start();
+         	
+         	localName = "car_7";
+ 			container = getContainerController();
+ 			args = new Object[2];
+         	args[0] = (Integer) 1;
+         	args[1] = (Integer) 7;
+ 			car = container.createNewAgent(localName, "mas.CarAgent", args);
+         	car.start();
+         	
+         	localName = "car_8";
+ 			container = getContainerController();
+ 			args = new Object[2];
+         	args[0] = (Integer) 1;
+         	args[1] = (Integer) 7;
+ 			car = container.createNewAgent(localName, "mas.CarAgent", args);
+         	car.start();
+         	
+         	localName = "car_9";
+ 			container = getContainerController();
+ 			args = new Object[2];
+         	args[0] = (Integer) 1;
+         	args[1] = (Integer) 7;
+ 			car = container.createNewAgent(localName, "mas.CarAgent", args);
+         	car.start();
+         	
+         	localName = "car_10";
+ 			container = getContainerController();
+ 			args = new Object[2];
+         	args[0] = (Integer) 1;
+         	args[1] = (Integer) 7;
+ 			car = container.createNewAgent(localName, "mas.CarAgent", args);
+         	car.start();
+         	
+         	localName = "car_11";
+ 			container = getContainerController();
+ 			args = new Object[2];
+         	args[0] = (Integer) 1;
+         	args[1] = (Integer) 7;
+ 			car = container.createNewAgent(localName, "mas.CarAgent", args);
+         	car.start();
+         	
+         	localName = "car_12";
+ 			container = getContainerController();
+ 			args = new Object[2];
+         	args[0] = (Integer) 1;
+         	args[1] = (Integer) 7;
+ 			car = container.createNewAgent(localName, "mas.CarAgent", args);
+         	car.start();
+         	
+         	localName = "car_13";
+ 			container = getContainerController();
+ 			args = new Object[2];
+         	args[0] = (Integer) 1;
+         	args[1] = (Integer) 7;
+ 			car = container.createNewAgent(localName, "mas.CarAgent", args);
+         	car.start();
+         	
         }
         catch (Exception e) {
             System.err.println( "Exception while adding roads: " + e );
