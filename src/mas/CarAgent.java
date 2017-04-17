@@ -66,7 +66,7 @@ public class CarAgent extends Agent{
 		                    	System.out.println(getAID().getLocalName()+": next vertex is " + start_);
 		                    	addBehaviour(new SearchBehaviour());
 		                    	//Request(currentP+1);
-		                    	//Ищем новый путь
+		                    	//пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 		                    }	
 		                    else 
 		                    {
@@ -130,9 +130,9 @@ public class CarAgent extends Agent{
 		}
 	}
 	
-	private class WaitBehaviour extends TickerBehaviour{
+	private class WaitBehaviour extends WakerBehaviour{
 
-		public WaitBehaviour(Agent a, long period) {
+		public WakerBehaviour(Agent a, long period) {
 			super(a, period);
 			// TODO Auto-generated constructor stub
 		}

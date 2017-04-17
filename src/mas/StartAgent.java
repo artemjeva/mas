@@ -31,117 +31,19 @@ public class StartAgent extends Agent{
             }
             
             Thread.sleep(2000);
-            String localName = "car_0";
+            
+            for (int j = 0; j < 30; j++)
+            {
+            String localName = "car" + j;
 			PlatformController container = getContainerController();
 			Object[] args = new Object[2];
         	args[0] = (Integer) 1;
         	args[1] = (Integer) 7;
 			AgentController car = container.createNewAgent(localName, "mas.CarAgent", args);
         	car.start();
+            }
       	
-        	localName = "car_1";
- 			container = getContainerController();
- 			args = new Object[2];
-         	args[0] = (Integer) 1;
-         	args[1] = (Integer) 7;
- 			car = container.createNewAgent(localName, "mas.CarAgent", args);
-         	car.start();
-         	
-         	localName = "car_2";
- 			container = getContainerController();
- 			args = new Object[2];
-         	args[0] = (Integer) 1;
-         	args[1] = (Integer) 7;
- 			car = container.createNewAgent(localName, "mas.CarAgent", args);
-         	car.start();
-         	
-         	localName = "car_3";
- 			container = getContainerController();
- 			args = new Object[2];
-         	args[0] = (Integer) 1;
-         	args[1] = (Integer) 7;
- 			car = container.createNewAgent(localName, "mas.CarAgent", args);
-         	car.start();
-         	
-         	localName = "car_4";
- 			container = getContainerController();
- 			args = new Object[2];
-         	args[0] = (Integer) 1;
-         	args[1] = (Integer) 7;
- 			car = container.createNewAgent(localName, "mas.CarAgent", args);
-         	car.start();
-         	
-         	localName = "car_5";
- 			container = getContainerController();
- 			args = new Object[2];
-         	args[0] = (Integer) 1;
-         	args[1] = (Integer) 7;
- 			car = container.createNewAgent(localName, "mas.CarAgent", args);
-         	car.start();
-         	
-         	localName = "car_6";
- 			container = getContainerController();
- 			args = new Object[2];
-         	args[0] = (Integer) 1;
-         	args[1] = (Integer) 7;
- 			car = container.createNewAgent(localName, "mas.CarAgent", args);
-         	car.start();
-         	
-         	localName = "car_7";
- 			container = getContainerController();
- 			args = new Object[2];
-         	args[0] = (Integer) 1;
-         	args[1] = (Integer) 7;
- 			car = container.createNewAgent(localName, "mas.CarAgent", args);
-         	car.start();
-         	
-         	localName = "car_8";
- 			container = getContainerController();
- 			args = new Object[2];
-         	args[0] = (Integer) 1;
-         	args[1] = (Integer) 7;
- 			car = container.createNewAgent(localName, "mas.CarAgent", args);
-         	car.start();
-         	
-         	localName = "car_9";
- 			container = getContainerController();
- 			args = new Object[2];
-         	args[0] = (Integer) 1;
-         	args[1] = (Integer) 7;
- 			car = container.createNewAgent(localName, "mas.CarAgent", args);
-         	car.start();
-         	
-         	localName = "car_10";
- 			container = getContainerController();
- 			args = new Object[2];
-         	args[0] = (Integer) 1;
-         	args[1] = (Integer) 7;
- 			car = container.createNewAgent(localName, "mas.CarAgent", args);
-         	car.start();
-         	
-         	localName = "car_11";
- 			container = getContainerController();
- 			args = new Object[2];
-         	args[0] = (Integer) 1;
-         	args[1] = (Integer) 7;
- 			car = container.createNewAgent(localName, "mas.CarAgent", args);
-         	car.start();
-         	
-         	localName = "car_12";
- 			container = getContainerController();
- 			args = new Object[2];
-         	args[0] = (Integer) 1;
-         	args[1] = (Integer) 7;
- 			car = container.createNewAgent(localName, "mas.CarAgent", args);
-         	car.start();
-         	
-         	localName = "car_13";
- 			container = getContainerController();
- 			args = new Object[2];
-         	args[0] = (Integer) 1;
-         	args[1] = (Integer) 7;
- 			car = container.createNewAgent(localName, "mas.CarAgent", args);
-         	car.start();
+        	
          	
         }
         catch (Exception e) {
