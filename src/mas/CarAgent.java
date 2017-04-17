@@ -132,7 +132,7 @@ public class CarAgent extends Agent{
 	
 	private class WaitBehaviour extends WakerBehaviour{
 
-		public WakerBehaviour(Agent a, long period) {
+		public WaitBehaviour(Agent a, long period) {
 			super(a, period);
 			// TODO Auto-generated constructor stub
 		}
