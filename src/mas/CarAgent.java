@@ -76,6 +76,7 @@ public class CarAgent extends Agent{
 		            			send(inform);
 		            			
 		            			finishTime = System.currentTimeMillis()-startTime;
+		            			Statistics.stat.put(getAID().getLocalName(), finishTime);
 		    					
 		    					System.out.println(getAID().getLocalName()+": Goodbye! Time: "+(finishTime)+ " ms");
 		    					myAgent.doDelete();

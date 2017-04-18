@@ -36,7 +36,6 @@ public class RoadAgent extends Agent{
 			currentSize = (Integer) args[2];
 			verteces = parseEdgeName(getAID().getLocalName());
 			
-			//����������� �������
 			DFAgentDescription dfd = new DFAgentDescription();
 			dfd.setName(getAID());
 			ServiceDescription sd = new ServiceDescription();
@@ -57,14 +56,23 @@ public class RoadAgent extends Agent{
 					if (msg != null) {
 						//first edge in path
 						if(msg.getContent().equals("start")){
+							System.out.println("***" + getAID().getLocalName()+ " : " + maxSize + "***");
+							if(queue.size() < maxSize)
+				            {
+						if(msg.getContent().equals("start")){
 							System.out.println(getAID().getLocalName()+": first");
-							weight = startWeight + (startWeight/maxSize) * currentSize;
-							Accept(msg.getSender(), weight);
+							weight = startWeight + Math.pow(((startWeight/maxSize) * currentSize), 2);
+							City.city.setEdgeWeight(City.city.getEdge(verteces[0], verteces[1]), weight);
+							Accept(msg.getSender(), City.city.getEdgeWeight(City.city.getEdge(verteces[0], verteces[1])));
 							queue.add(msg.getSender());
 							currentSize = queue.size();		
-							City.city.setEdgeWeight(City.city.getEdge(verteces[0], verteces[1]), weight);
+							 }
+						else //path is NOT free
+							Reject(msg.getSender());
 						}
 						else{	
+							System.out.println("***" + getAID().getLocalName()+ " : " + maxSize + "***");
+													
 							//path is free
 							if(queue.size() < maxSize)
 				            {
@@ -118,7 +126,7 @@ public class RoadAgent extends Agent{
 				       		    send(accept);
 				       		    queue.remove(agent);
 				       		    currentSize = queue.size();		
-								weight = startWeight + (startWeight/maxSize) * currentSize;
+				       		    weight = startWeight + Math.pow(((startWeight/maxSize) * currentSize), 2);
 								City.city.setEdgeWeight(City.city.getEdge(verteces[0], verteces[1]), weight);
 				       		    break;
 							}
@@ -145,9 +153,10 @@ public class RoadAgent extends Agent{
 						carsRequest.remove(agent);
 						queue.add(agent);
 						currentSize = queue.size();	
-						weight = startWeight + (startWeight/maxSize) * currentSize;
+						weight = startWeight + Math.pow(((startWeight/maxSize) * currentSize), 2);
 						City.city.setEdgeWeight(City.city.getEdge(verteces[0], verteces[1]), weight);
-						Accept(agent, weight);						
+						Accept(agent, City.city.getEdgeWeight(City.city.getEdge(verteces[0], verteces[1])));
+											
 					}
 					else {
 						// if no message is arrived, block the behaviour
@@ -162,7 +171,7 @@ public class RoadAgent extends Agent{
 					if (msg != null) {
 						queue.remove(msg.getSender());
 						currentSize = queue.size();		
-						weight = startWeight + (startWeight/maxSize) * currentSize;
+						weight = startWeight + Math.pow(((startWeight/maxSize) * currentSize), 2);
 						City.city.setEdgeWeight(City.city.getEdge(verteces[0], verteces[1]), weight);
 					}
 					else {
