@@ -50,66 +50,57 @@ public class RoadAgent extends Agent{
 			}
 			
 			//Request from car
-			addBehaviour(new CyclicBehaviour(){
-				public void action() {
-					ACLMessage msg = receive(MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
-					if (msg != null) {
-						//first edge in path
-						if(msg.getContent().equals("start")){
-							System.out.println("***" + getAID().getLocalName()+ " : " + maxSize + "***");
-							if(queue.size() < maxSize)
-				            {
-						if(msg.getContent().equals("start")){
-							System.out.println(getAID().getLocalName()+": first");
-							weight = startWeight + Math.pow(((startWeight/maxSize) * currentSize), 2);
-							City.city.setEdgeWeight(City.city.getEdge(verteces[0], verteces[1]), weight);
-							Accept(msg.getSender(), City.city.getEdgeWeight(City.city.getEdge(verteces[0], verteces[1])));
-							queue.add(msg.getSender());
-							currentSize = queue.size();		
-							 }
-						else //path is NOT free
-							Reject(msg.getSender());
-						}
-						else{	
-							System.out.println("***" + getAID().getLocalName()+ " : " + maxSize + "***");
-													
-							//path is free
-							if(queue.size() < maxSize)
-				            {
-								carsRequest.add(msg.getSender());
-				            	// Propose to another road 
-				            	DFAgentDescription template = new DFAgentDescription();
-					           	ServiceDescription sd = new ServiceDescription();
-					           	sd.setType("traffic");
-					           	template.addServices(sd);
-					           	try {
-					           		DFAgentDescription[] result = DFService.search(this.myAgent, template); 
-					           		for (int i = 0; i < result.length; ++i) {
-					           			if(result[i].getName().getLocalName().equals(msg.getContent())){
-					           			    //send message
-					           				System.out.println(getAID().getLocalName()+": Propose for " + result[i].getName().getLocalName() + " about " + msg.getSender().getLocalName());
-					                        ACLMessage req = new ACLMessage( ACLMessage.PROPOSE);
-					           				req.setContent(msg.getSender().getLocalName());
-					           				req.addReceiver(result[i].getName());
-					           				send(req);
-				           					break;
-				           					}
-				           				}
-					           	}	
-					           	catch (FIPAException fe) {
-					           		fe.printStackTrace();
-					           	}
-				            }
-							else //path is NOT free
-								Reject(msg.getSender());
-						}
-					}
-					else {
-		                // if no message is arrived, block the behaviour
-		                block();
-		            }
-				}
-			});		
+			addBehaviour(new CyclicBehaviour(){ 
+				public void action() { 
+				ACLMessage msg = receive(MessageTemplate.MatchPerformative(ACLMessage.REQUEST)); 
+				if (msg != null) { 
+				System.out.println("***" + getAID().getLocalName()+ " : " + maxSize + "***"); 
+				if(queue.size() < maxSize) 
+				{ 
+				//first edge in path 
+				if(msg.getContent().equals("start")){ 
+				System.out.println(getAID().getLocalName()+": first"); 
+				weight = startWeight + Math.pow(((startWeight/maxSize) * currentSize), 2); 
+				City.city.setEdgeWeight(City.city.getEdge(verteces[0], verteces[1]), weight); 
+				Accept(msg.getSender(), City.city.getEdgeWeight(City.city.getEdge(verteces[0], verteces[1]))); 
+				queue.add(msg.getSender()); 
+				currentSize = queue.size(); 
+				} 
+				else{ 
+				carsRequest.add(msg.getSender()); 
+				// Propose to another road 
+				DFAgentDescription template = new DFAgentDescription(); 
+				ServiceDescription sd = new ServiceDescription(); 
+				sd.setType("traffic"); 
+				template.addServices(sd); 
+				try { 
+				DFAgentDescription[] result = DFService.search(this.myAgent, template); 
+				for (int i = 0; i < result.length; ++i) { 
+				if(result[i].getName().getLocalName().equals(msg.getContent())){ 
+				//send message 
+				System.out.println(getAID().getLocalName()+": Propose for " + result[i].getName().getLocalName() + " about " + msg.getSender().getLocalName()); 
+				ACLMessage req = new ACLMessage( ACLMessage.PROPOSE);
+				req.setContent(msg.getSender().getLocalName()); 
+				req.addReceiver(result[i].getName()); 
+				send(req); 
+				break; 
+				} 
+				} 
+				} 
+				catch (FIPAException fe) { 
+				fe.printStackTrace(); 
+				} 
+				} 
+				} 
+				else //path is NOT free 
+				Reject(msg.getSender()); 
+				} 
+				else{ 
+				// if no message is arrived, block the behaviour 
+				block(); 
+				} 
+				} 
+			});
 			//Propose from road
 			addBehaviour(new CyclicBehaviour(){
 				public void action(){
