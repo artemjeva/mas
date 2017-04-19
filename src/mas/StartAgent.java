@@ -1,11 +1,13 @@
 package mas;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
 
 import jade.core.*;
+import jade.core.behaviours.TickerBehaviour;
 import jade.wrapper.AgentController;
 import jade.wrapper.PlatformController;
 
@@ -31,7 +33,8 @@ public class StartAgent extends Agent{
             
             Thread.sleep(2000);
             
-            for (int j = 0; j < 1; j++)
+            int allCars = 30;
+            for (int j = 0; j < allCars; j++)
             {
 	            String localName = "car" + j;
 				PlatformController container = getContainerController();
@@ -40,7 +43,41 @@ public class StartAgent extends Agent{
 	        	args[1] = (Integer) 16;
 				AgentController car = container.createNewAgent(localName, "mas.CarAgent", args);
 	        	car.start();
+	        	Thread.sleep(1000);
             }
+      	
+            addBehaviour(new TickerBehaviour(this, 5000){
+            	protected void onTick(){
+        	   		System.out.println("Amount of finished cars: " + Statistics.stat.size());
+            		
+            		if (Statistics.stat.size() == allCars)
+            		{
+            			HashMap<String, Long> sortedMap = Statistics.sortByValues(Statistics.stat);
+            			long min = sortedMap.get(sortedMap.keySet().toArray()[0]);
+            			String minCarName = sortedMap.keySet().toArray()[0].toString();
+            			long max = sortedMap.get(sortedMap.keySet().toArray()[sortedMap.size() - 1]);
+            			String maxCarName = sortedMap.keySet().toArray()[sortedMap.size() - 1].toString();
+            			long sum = 0;
+            			for (int i = 0; i < sortedMap.size(); i++)
+            			{
+            				sum += sortedMap.get(sortedMap.keySet().toArray()[i]);
+            			}
+            			
+            			System.out.println("Statictics:");
+            			System.out.println("Min time: " + min+", car: "+minCarName);
+            			System.out.println("Max time: " + max+", car: "+maxCarName);
+            			System.out.println("Total time: " + sum+", All cars: "+ allCars);
+            			
+            			for(int i = 0; i < allCars; i++)
+            			{
+            				System.out.println("Car: " + sortedMap.keySet().toArray()[i].toString() +", time: "+sortedMap.get(sortedMap.keySet().toArray()[i]).toString());
+            			}
+            			
+            			doDelete();
+            		}  
+            	}
+        	
+            });
         }
         catch (Exception e) {
             System.err.println( "Exception while adding roads: " + e );

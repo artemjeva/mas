@@ -12,23 +12,26 @@ import org.jgrapht.graph.DefaultWeightedEdge;
 import jade.core.*;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.ReceiverBehaviour;
 import jade.core.behaviours.SequentialBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.core.behaviours.WakerBehaviour;
+import jade.core.behaviours.ReceiverBehaviour.NotYetReady;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import mas.CarAgent.SeqBehaviour;
 
 public class CarAgent extends Agent{
 	private int start = 0, finish = 0, start_ = 0, finish_ = 0;
 	private AID currentP;// = new AID();
 	private List<AID> roadAgents = new ArrayList<AID>();
 	private long startTime, finishTime;
-	private int timeRide = 1000;
-	private ACLMessage msg;
+	private int timeRide = 0;
+	public SeqBehaviour sb;
 	
 	protected void setup() {
 		System.out.println("Hello! Car " + getAID().getLocalName() + " is ready to go!");
@@ -47,7 +50,7 @@ public class CarAgent extends Agent{
 			addBehaviour(new SearchBehaviour());
 			
 			// Accept from road
-			SeqBehaviour sb = new SeqBehaviour(this);
+			sb = new SeqBehaviour(this);
 			addBehaviour(sb);
 			
 			//Reject from road
@@ -143,74 +146,78 @@ public class CarAgent extends Agent{
 			}
 		}
 	}
-	private class RecieveMsgBehaviour extends OneShotBehaviour{
-		public void action()
-		{
-			msg = receive(MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL));
-			if (msg != null) {
-                	System.out.println(getAID().getLocalName()+": Accept from road " + msg.getSender().getLocalName());
-                	currentP = msg.getSender();
-                	timeRide = Integer.parseInt(msg.getContent());
-                	//addBehaviour(new RideBehaviour(myAgent, timeRide));
-            }
-            else {
-              //  block();
-            }
+
+	private class BeforeRideBehaviour extends OneShotBehaviour{
+		private ReceiverBehaviour.Handle h;
+		private ACLMessage msg;
+		public BeforeRideBehaviour(ReceiverBehaviour.Handle h_){
+			h=h_;
+		}
+		@Override
+		public void action() {
+			try{
+				msg = h.getMessage();
+		    }
+		    catch(ReceiverBehaviour.TimedOut rbte) {System.out.println("Recieve Timeout");} 
+		    catch (NotYetReady e) { }
+			if(msg!=null)
+			{
+				System.out.println(getAID().getLocalName()+": Accept from road " + msg.getSender().getLocalName());
+            	currentP = msg.getSender();
+            	timeRide = Integer.parseInt(msg.getContent());
+            	System.out.println(getAID().getLocalName()+": I will ride " + timeRide);
+				sb.addSubBehaviour(new RideBehaviour(myAgent, timeRide, msg));
+			}
 		}
 	}
-
+	
 	private class RideBehaviour extends WakerBehaviour{
-		public RideBehaviour(Agent a, long timeout) {
+		private ACLMessage msg;;
+		public RideBehaviour(Agent a, long timeout, ACLMessage m) {
 			super(a, timeout);
+			msg = m;			
 		}	
 		protected void handleElapsedTimeout()
 		{	
 		  //  reset(timeRide);
 		    System.out.println(myAgent.getLocalName() + ": Ride.. "+timeRide+"ms");
+		    if(roadAgents.size() > 1)
+	            {
+	            	start_ = Integer.parseInt(currentP.getLocalName().split("_")[1]);
+	            	System.out.println(getAID().getLocalName()+": next vertex is " + start_);
+	            	addBehaviour(new SearchBehaviour());
+	            	//Request(currentP+1);
+	            }	
+	            else 
+	            {
+	            	ACLMessage inform = new ACLMessage( ACLMessage.INFORM);
+	    			inform.setContent("bye");
+	    	    	inform.addReceiver(currentP);
+	    			send(inform);
+	    			
+	    			finishTime = System.currentTimeMillis()-startTime;
+	    			Statistics.stat.put(getAID().getLocalName(), finishTime);
+					
+					System.out.println(getAID().getLocalName()+": Goodbye! Time: "+(finishTime)+ " ms");
+					myAgent.doDelete();
+					super.onEnd();
+	            }
 		}
 	}
-	private class RequestBehaviour extends OneShotBehaviour{
-			//System.out.println(getAID().getLocalName() + ": !!!!!" + msg.getSender().getLocalName());
-		public void action()
-		{
-			if(msg!=null)
-			{
-			if(roadAgents.size() > 1)
-            {
-            	start_ = Integer.parseInt(currentP.getLocalName().split("_")[1]);
-            	System.out.println(getAID().getLocalName()+": next vertex is " + start_);
-            	addBehaviour(new SearchBehaviour());
-            	//Request(currentP+1);
-            }	
-            else 
-            {
-            	ACLMessage inform = new ACLMessage( ACLMessage.INFORM);
-    			inform.setContent("bye");
-    	    	inform.addReceiver(currentP);
-    			send(inform);
-    			
-    			finishTime = System.currentTimeMillis()-startTime;
-				
-				System.out.println(getAID().getLocalName()+": Goodbye! Time: "+(finishTime)+ " ms");
-				myAgent.doDelete();
-				super.onEnd();
-            }
-			}
-		}
-	}
-	
 	public class SeqBehaviour extends SequentialBehaviour{
-		//private ACLMessage msg;
+		private ACLMessage msg;
 		public SeqBehaviour(Agent a){			
 			super(a);
+
+			ReceiverBehaviour.Handle h = ReceiverBehaviour.newHandle();
 			
-			addSubBehaviour(new RecieveMsgBehaviour());
-			addSubBehaviour(new RideBehaviour(a, timeRide));
-			addSubBehaviour(new RequestBehaviour());
+			addSubBehaviour(new ReceiverBehaviour(myAgent, h, 1000, MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL)));
+			addSubBehaviour(new BeforeRideBehaviour(h));
 		}
 		public int onEnd() {
 		    reset();
-		    myAgent.addBehaviour(this);
+		    sb = new SeqBehaviour(myAgent);
+		    myAgent.addBehaviour(sb);
 		    return super.onEnd();
 		  }	
 	}

@@ -34,11 +34,11 @@ public class City {
 		
 		
 		DefaultWeightedEdge e1_2 = city.addEdge(1, 2);
-		city.setEdgeWeight(e1_2, 5);
+		city.setEdgeWeight(e1_2, 6);
 		edges.add(e1_2);
 		
 		DefaultWeightedEdge e2_1 = city.addEdge(2, 1);
-		city.setEdgeWeight(e2_1, 5);
+		city.setEdgeWeight(e2_1, 6);
 		edges.add(e2_1);
 		
 		DefaultWeightedEdge e2_3 = city.addEdge(2, 3);
