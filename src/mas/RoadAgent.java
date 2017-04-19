@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
 
@@ -36,11 +38,7 @@ public class RoadAgent extends Agent{
 			currentSize = (Integer) args[2];
 			verteces = parseEdgeName(getAID().getLocalName());
 			
-<<<<<<< HEAD
 			//Registration
-=======
-			//����������� �������
->>>>>>> bbb1453ce9fbed7ec1b43c19dd66d6dfdc3bdda6
 			DFAgentDescription dfd = new DFAgentDescription();
 			dfd.setName(getAID());
 			ServiceDescription sd = new ServiceDescription();
