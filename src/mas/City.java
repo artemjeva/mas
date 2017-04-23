@@ -15,6 +15,7 @@ public class City {
 	public static List<DefaultWeightedEdge> edges = new ArrayList<DefaultWeightedEdge>();
 
 	public static void DoCity() {
+		city.addVertex(0);
 		city.addVertex(1);
 		city.addVertex(2);
 		city.addVertex(3);
@@ -31,6 +32,10 @@ public class City {
 		city.addVertex(14);
 		city.addVertex(15);
 		city.addVertex(16);
+		
+		DefaultWeightedEdge e0_1 = city.addEdge(0, 1); 
+		city.setEdgeWeight(e0_1, 1); 
+		edges.add(e0_1);
 
 		DefaultWeightedEdge e1_2 = city.addEdge(1, 2);
 		city.setEdgeWeight(e1_2, 6);

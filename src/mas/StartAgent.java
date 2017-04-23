@@ -24,9 +24,7 @@ public class StartAgent extends Agent {
 				PlatformController container = getContainerController();
 				Object[] args = new Object[3];
 				args[0] = City.city.getEdgeWeight(e);
-				args[1] = City.city.getEdgeWeight(e) * 2;// maxSize is weight
-															// (we mean time) *
-															// 2
+				args[1] = City.city.getEdgeWeight(e) * 2;// maxSize is weight (we mean time) * 2
 				args[2] = 0;// there are no cars on the roads
 				AgentController road = container.createNewAgent(localName, "mas.RoadAgent", args);
 				road.start();
@@ -39,7 +37,7 @@ public class StartAgent extends Agent {
 				String localName = "car" + j;
 				PlatformController container = getContainerController();
 				Object[] args = new Object[2];
-				args[0] = (Integer) 1;
+				args[0] = (Integer) 0;
 				args[1] = (Integer) 16;
 				AgentController car = container.createNewAgent(localName, "mas.CarAgent", args);
 				car.start();
